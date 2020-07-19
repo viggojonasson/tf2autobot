@@ -8,6 +8,7 @@ import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import { parseJSON } from '../lib/helpers';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice } from '../lib/ptf-api';
@@ -102,6 +103,8 @@ export default class Pricelist extends EventEmitter {
 
     private keyPrices: { buy: Currencies; sell: Currencies };
 
+    private discordWebhookLinks: string[];
+
     constructor(schema: SchemaManager.Schema, socket: SocketIOClient.Socket) {
         super();
         this.schema = schema;
@@ -109,6 +112,18 @@ export default class Pricelist extends EventEmitter {
 
         this.socket.removeListener('price', this.handlePriceChange.bind(this));
         this.socket.on('price', this.handlePriceChange.bind(this));
+
+        let links = parseJSON(process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
+        if (links !== null && Array.isArray(links)) {
+            links.forEach(function(sku: string) {
+                if (sku === '' || !sku) {
+                    links = [
+                        'https://discordapp.com/api/webhooks/734547259911569470/ISKP9D0q2uXStAaLC8lvOWeY1VmiQh-Uo57twjFKmVB6ApSNZJyBtk0cZHkY6Df1GH-K' // Just dump it in my unused discord channel
+                    ];
+                }
+            });
+            this.discordWebhookLinks = links;
+        }
     }
 
     getKeyPrices(): { buy: Currencies; sell: Currencies } {
@@ -454,10 +469,6 @@ export default class Pricelist extends EventEmitter {
     }
 
     private sendWebHookPriceUpdate(itemName: string, buyPrice: string, sellPrice: string, sku: string): void {
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-
         const time = moment()
             .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
             .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
@@ -642,7 +653,12 @@ export default class Pricelist extends EventEmitter {
         });
         /*eslint-enable */
 
-        request.send(priceUpdate);
+        this.discordWebhookLinks.forEach(link => {
+            const request = new XMLHttpRequest();
+            request.open('POST', link);
+            request.setRequestHeader('Content-type', 'application/json');
+            request.send(priceUpdate);
+        });
     }
 
     private getOld(): Entry[] {
