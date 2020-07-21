@@ -54,6 +54,7 @@ const ADMIN_COMMANDS: string[] = [
     '!remove <sku=> OR <item=> - Remove a pricelist entry ➖',
     '!get <sku=> OR <item=> - Get raw information about a pricelist entry',
     '!pricecheck <sku=> OR <item=> - Requests an item to be priced by PricesTF',
+    '!pricecheckall - Requests all items in pricelist to be checked by PricesTF, 5 seconds between each check',
     '!check sku=<item sku> - Request current price for an item from Prices.TF',
     '!expand <craftable=true|false> - Uses Backpack Expanders to increase the inventory limit',
     '!delete sku=<item sku> OR assetid=<item assetid> - Delete any item (use only sku) 🚮',
@@ -148,6 +149,8 @@ export = class Commands {
             this.updateCommand(steamID, message);
         } else if (command === 'pricecheck' && isAdmin) {
             this.pricecheckCommand(steamID, message);
+        } else if (command === 'pricecheckall' && isAdmin) {
+            this.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             this.checkCommand(steamID, message);
         } else if (command === 'delete' && isAdmin) {
@@ -1513,6 +1516,65 @@ export = class Commands {
 
             this.bot.sendMessage(steamID, `⌛ Price check requested for ${body.name}, the item will be checked.`);
         });
+    }
+
+    private pricecheckAllCommand(steamID): void {
+        const pricelist = this.bot.pricelist.getPrices();
+        const total = pricelist.length;
+        const totalTime = total * 5 * 1000;
+        this.bot.sendMessage(
+            steamID,
+            `⌛ Price check requested for ${total} items, will be done in approximately ${
+                totalTime < 1 * 60 * 1000
+                    ? `${Math.round(totalTime / 1000)} seconds.`
+                    : totalTime < 1 * 60 * 60 * 1000
+                    ? `${Math.round(totalTime / (1 * 60 * 1000))} minutes.`
+                    : `${Math.round(totalTime / (1 * 60 * 60 * 1000))} hours.`
+            } (every 5 seconds for each items).`
+        );
+
+        let submitted = 0;
+        let success = 0;
+        let failed = 0;
+        pricelist.forEach(entry => {
+            requestCheck(entry.sku, 'bptf').asCallback(err => {
+                if (err) {
+                    submitted++;
+                    failed++;
+                    log.warn(
+                        'pricecheck failed for ' +
+                            entry.sku +
+                            ': ' +
+                            (err.body && err.body.message ? err.body.message : err.message)
+                    );
+                    log.debug(
+                        `pricecheck for ${entry.sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
+                } else {
+                    submitted++;
+                    success++;
+                    log.debug(
+                        `pricecheck for ${entry.sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                    );
+                }
+                if (submitted !== total) {
+                    this.sleep(5 * 1000);
+                } else {
+                    this.bot.sendMessage(
+                        steamID,
+                        `✅ Successfully requested pricecheck for all ${total} ${pluralize('item', total)}!`
+                    );
+                }
+            });
+        });
+    }
+
+    private sleep(mili: number): void {
+        const date = moment().valueOf();
+        let currentDate = null;
+        do {
+            currentDate = moment().valueOf();
+        } while (currentDate - date < mili);
     }
 
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
