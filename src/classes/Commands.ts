@@ -1533,29 +1533,31 @@ export = class Commands {
             } (every 5 seconds for each items).`
         );
 
+        const skus = pricelist.map(entry => entry.sku);
+
         let submitted = 0;
         let success = 0;
         let failed = 0;
-        pricelist.forEach(entry => {
+        skus.forEach(sku => {
             this.sleep(2 * 1000);
-            requestCheck(entry.sku, 'bptf').asCallback(err => {
+            requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
                     submitted++;
                     failed++;
                     log.warn(
                         'pricecheck failed for ' +
-                            entry.sku +
+                            sku +
                             ': ' +
                             (err.body && err.body.message ? err.body.message : err.message)
                     );
                     log.debug(
-                        `pricecheck for ${entry.sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
                     );
                 } else {
                     submitted++;
                     success++;
                     log.debug(
-                        `pricecheck for ${entry.sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
                     );
                 }
                 if (submitted !== total) {
