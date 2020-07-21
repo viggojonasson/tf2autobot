@@ -1537,6 +1537,7 @@ export = class Commands {
         let success = 0;
         let failed = 0;
         pricelist.forEach(entry => {
+            this.sleep(2 * 1000);
             requestCheck(entry.sku, 'bptf').asCallback(err => {
                 if (err) {
                     submitted++;
@@ -1558,7 +1559,7 @@ export = class Commands {
                     );
                 }
                 if (submitted !== total) {
-                    this.sleep(5 * 1000);
+                    this.sleep(3 * 1000);
                 } else {
                     this.bot.sendMessage(
                         steamID,
