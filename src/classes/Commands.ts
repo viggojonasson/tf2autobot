@@ -1535,10 +1535,16 @@ export = class Commands {
 
         const skus = pricelist.map(entry => entry.sku);
 
+        let started = false;
         let submitted = 0;
         let success = 0;
         let failed = 0;
         skus.forEach(sku => {
+            if (!started) {
+                this.bot.botManager.getSocket();
+                this.sleep(10 * 1000);
+                started = true;
+            }
             requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
                     submitted++;
