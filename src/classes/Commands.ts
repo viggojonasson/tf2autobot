@@ -15,6 +15,7 @@ import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
 import DiscordWebhook from './DiscordWebhook';
+import io from 'socket.io-client';
 
 import { Item, Currency } from '../types/TeamFortress2';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
@@ -80,6 +81,8 @@ export = class Commands {
     readonly discord: DiscordWebhook;
 
     private queuePositionCheck;
+
+    private readonly socket: SocketIOClient.Socket;
 
     constructor(bot: Bot) {
         this.bot = bot;
@@ -1541,8 +1544,8 @@ export = class Commands {
         let failed = 0;
         skus.forEach(sku => {
             if (!started) {
-                this.bot.botManager.getSocket();
-                this.sleep(10 * 1000);
+                this.ensureSocketConnection();
+                this.sleep(5 * 1000);
                 started = true;
             }
             requestCheck(sku, 'bptf').asCallback(err => {
@@ -1583,6 +1586,14 @@ export = class Commands {
         do {
             currentDate = moment().valueOf();
         } while (currentDate - date < mili);
+    }
+
+    private ensureSocketConnection(): void {
+        const socket = io('https://api.prices.tf', {
+            forceNew: true,
+            autoConnect: false
+        });
+        socket.connect();
     }
 
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
