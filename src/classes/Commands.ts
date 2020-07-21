@@ -1536,26 +1536,25 @@ export = class Commands {
         let submitted = 0;
         let success = 0;
         let failed = 0;
-
-        for (let i = 0; i < pricelist.length; i++) {
-            requestCheck(pricelist[i].sku, 'bptf').asCallback(err => {
+        pricelist.forEach(entry => {
+            requestCheck(entry.sku, 'bptf').asCallback(err => {
                 if (err) {
                     submitted++;
                     failed++;
                     log.warn(
                         'pricecheck failed for ' +
-                            pricelist[i].sku +
+                            entry.sku +
                             ': ' +
                             (err.body && err.body.message ? err.body.message : err.message)
                     );
                     log.debug(
-                        `pricecheck for ${pricelist[i].sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                        `pricecheck for ${entry.sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
                     );
                 } else {
                     submitted++;
                     success++;
                     log.debug(
-                        `pricecheck for ${pricelist[i].sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
+                        `pricecheck for ${entry.sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
                     );
                 }
                 if (submitted !== total) {
@@ -1567,7 +1566,7 @@ export = class Commands {
                     );
                 }
             });
-        }
+        });
     }
 
     private sleep(mili: number): void {
