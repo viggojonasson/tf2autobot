@@ -15,7 +15,7 @@ import UserCart from './UserCart';
 import MyHandler from './MyHandler';
 import CartQueue from './CartQueue';
 import DiscordWebhook from './DiscordWebhook';
-import io from 'socket.io-client';
+import sleepasync from 'sleep-async';
 
 import { Item, Currency } from '../types/TeamFortress2';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
@@ -1521,33 +1521,32 @@ export = class Commands {
         });
     }
 
-    private pricecheckAllCommand(steamID): void {
+    private async pricecheckAllCommand(steamID): Promise<void> {
         const pricelist = this.bot.pricelist.getPrices();
+
         const total = pricelist.length;
-        const totalTime = total * 5 * 1000;
+        const totalTime = total * 2 * 1000;
+        const aSecond = 1 * 1000;
+        const aMin = 1 * 60 * 1000;
+        const anHour = 1 * 60 * 60 * 1000;
         this.bot.sendMessage(
             steamID,
             `⌛ Price check requested for ${total} items, will be done in approximately ${
-                totalTime < 1 * 60 * 1000
-                    ? `${Math.round(totalTime / 1000)} seconds.`
-                    : totalTime < 1 * 60 * 60 * 1000
-                    ? `${Math.round(totalTime / (1 * 60 * 1000))} minutes.`
-                    : `${Math.round(totalTime / (1 * 60 * 60 * 1000))} hours.`
-            } (every 5 seconds for each items).`
+                totalTime < aMin
+                    ? `${Math.round(totalTime / aSecond)} seconds.`
+                    : totalTime < anHour
+                    ? `${Math.round(totalTime / aMin)} minutes.`
+                    : `${Math.round(totalTime / anHour)} hours.`
+            } (every 2 seconds for each items).`
         );
 
         const skus = pricelist.map(entry => entry.sku);
 
-        let started = false;
         let submitted = 0;
         let success = 0;
         let failed = 0;
-        skus.forEach(sku => {
-            if (!started) {
-                this.ensureSocketConnection();
-                this.sleep(5 * 1000);
-                started = true;
-            }
+        for (const sku of skus) {
+            await sleepasync().Promise.sleep(2 * 1000);
             requestCheck(sku, 'bptf').asCallback(err => {
                 if (err) {
                     submitted++;
@@ -1568,32 +1567,14 @@ export = class Commands {
                         `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
                     );
                 }
-                if (submitted !== total) {
-                    this.sleep(5 * 1000);
-                } else {
+                if (submitted === total) {
                     this.bot.sendMessage(
                         steamID,
                         `✅ Successfully requested pricecheck for all ${total} ${pluralize('item', total)}!`
                     );
                 }
             });
-        });
-    }
-
-    private sleep(mili: number): void {
-        const date = moment().valueOf();
-        let currentDate = null;
-        do {
-            currentDate = moment().valueOf();
-        } while (currentDate - date < mili);
-    }
-
-    private ensureSocketConnection(): void {
-        const socket = io('https://api.prices.tf', {
-            forceNew: true,
-            autoConnect: false
-        });
-        socket.connect();
+        }
     }
 
     private async checkCommand(steamID: SteamID, message: string): Promise<void> {
