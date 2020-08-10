@@ -507,6 +507,14 @@ export default class Pricelist extends EventEmitter {
             oldSellingPrice.toValue(keyPrices.sell.metal) - newPrice.sell.toValue(keyPrices.sell.metal)
         );
 
+        const displayBuyPrice = !data
+            ? 'Unknown → ' + newPrice.buy.toString()
+            : `${oldBuyingPrice.toString()} → ${newPrice.buy.toString()} (${buyDiff.toString()})`;
+
+        const displaySellPrice = !data
+            ? 'Unknown → ' + newPrice.sell.toString()
+            : `${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})`;
+
         const itemImageUrl = this.schema.getItemByItemName(newName);
 
         const paintCan = {
@@ -672,8 +680,8 @@ export default class Pricelist extends EventEmitter {
                     },
                     title: '',
                     description:
-                        `**※  Buy:** ${oldBuyingPrice.toString()} → ${newPrice.buy.toString()} (${buyDiff.toString()})\n` +
-                        `**※ Sell:** ${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})\n` +
+                        `**※  Buy:** ${displayBuyPrice}\n` +
+                        `**※ Sell:** ${displaySellPrice}\n` +
                         (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             : ''),
