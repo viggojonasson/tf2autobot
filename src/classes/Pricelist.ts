@@ -488,7 +488,7 @@ export default class Pricelist extends EventEmitter {
         try {
             data = await getPriceHistory(sku, 'bptf');
         } catch (err) {
-            // Do nothing
+            log.warn('failed to get old price: ' + (err.body && err.body.message ? err.body.message : err.message));
         }
 
         if (!data) {
