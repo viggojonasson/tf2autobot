@@ -11,7 +11,7 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { parseJSON } from '../lib/helpers';
 
 import log from '../lib/logger';
-import { getPricelist, getPrice, getPriceHistory } from '../lib/ptf-api';
+import { getPricelist, getPrice } from '../lib/ptf-api'; // removed getPriceHistory
 import validator from '../lib/validator';
 
 const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;
@@ -468,7 +468,7 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private async sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): Promise<void> {
+    private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
         const time = moment()
             .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') // timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
             .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
@@ -478,40 +478,40 @@ export default class Pricelist extends EventEmitter {
         const item = SKU.fromString(newSku);
         const newName = this.schema.getName(item, false);
 
-        const keyPrices = this.getKeyPrices();
+        // const keyPrices = this.getKeyPrices();
 
-        let data;
-        let oldPrice;
-        try {
-            data = await getPriceHistory(sku, 'bptf');
-        } catch (err) {
-            log.warn('failed to get old price: ' + (err.body && err.body.message ? err.body.message : err.message));
-        }
+        // let data;
+        // let oldPrice;
+        // try {
+        //     data = await getPriceHistory(sku, 'bptf');
+        // } catch (err) {
+        //     log.warn('failed to get old price: ' + (err.body && err.body.message ? err.body.message : err.message));
+        // }
 
-        if (!data) {
-            oldPrice = { time: null, buy: { keys: 0, metal: 0 }, sell: { keys: 0, metal: 0 } };
-        } else {
-            const dataLength = data.history.length;
-            oldPrice = data.history[dataLength - 2];
-        }
+        // if (!data) {
+        //     oldPrice = { time: null, buy: { keys: 0, metal: 0 }, sell: { keys: 0, metal: 0 } };
+        // } else {
+        //     const dataLength = data.history.length;
+        //     oldPrice = data.history[dataLength - 2];
+        // }
 
-        const oldBuyingPrice = new Currencies(oldPrice.buy);
-        const oldSellingPrice = new Currencies(oldPrice.sell);
+        // const oldBuyingPrice = new Currencies(oldPrice.buy);
+        // const oldSellingPrice = new Currencies(oldPrice.sell);
 
-        const buyDiffValue = newPrice.buy.toValue(keyPrices.buy.metal) - oldBuyingPrice.toValue(keyPrices.buy.metal);
-        const sellDiffValue =
-            newPrice.sell.toValue(keyPrices.sell.metal) - oldSellingPrice.toValue(keyPrices.sell.metal);
+        // const buyDiffValue = newPrice.buy.toValue(keyPrices.buy.metal) - oldBuyingPrice.toValue(keyPrices.buy.metal);
+        // const sellDiffValue =
+        //     newPrice.sell.toValue(keyPrices.sell.metal) - oldSellingPrice.toValue(keyPrices.sell.metal);
 
-        const buyDiff = buyDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(buyDiffValue);
-        const sellDiff = sellDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(sellDiffValue);
+        // const buyDiff = buyDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(buyDiffValue);
+        // const sellDiff = sellDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(sellDiffValue);
 
-        const displayBuyPrice = !data
-            ? 'Unknown → ' + newPrice.buy.toString()
-            : `${oldBuyingPrice.toString()} → ${newPrice.buy.toString()} (${buyDiff.toString()})`;
+        // const displayBuyPrice = !data
+        //     ? 'Unknown → ' + newPrice.buy.toString()
+        //     : `${oldBuyingPrice.toString()} → ${newPrice.buy.toString()} (${buyDiff.toString()})`;
 
-        const displaySellPrice = !data
-            ? 'Unknown → ' + newPrice.sell.toString()
-            : `${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})`;
+        // const displaySellPrice = !data
+        //     ? 'Unknown → ' + newPrice.sell.toString()
+        //     : `${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})`;
 
         const itemImageUrl = this.schema.getItemByItemName(newName);
 
@@ -678,8 +678,8 @@ export default class Pricelist extends EventEmitter {
                     },
                     title: '',
                     description:
-                        `**※  Buy:** ${displayBuyPrice}\n` +
-                        `**※ Sell:** ${displaySellPrice}\n` +
+                        `**※  Buy:** ${newPrice.buy.toString()}\n` +
+                        `**※ Sell:** ${newPrice.sell.toString()}\n` +
                         (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             : ''),
