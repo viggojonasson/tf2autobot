@@ -450,7 +450,7 @@ export default class Pricelist extends EventEmitter {
             match.sell = new Currencies(data.sell);
             match.time = data.time;
 
-            const itemName = this.schema.getName(SKU.fromString(match.sku), false);
+            const name = this.schema.getName(SKU.fromString(match.sku), false);
 
             this.priceChanged(match.sku, match);
 
@@ -458,7 +458,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                this.sendWebHookPriceUpdate(itemName, match.buy.toString(), match.sell.toString(), data.sku);
+                this.sendWebHookPriceUpdate(data.sku, name, match);
             }
         }
     }
@@ -468,20 +468,17 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private async sendWebHookPriceUpdate(
-        itemName: string,
-        buyPrice: string,
-        sellPrice: string,
-        sku: string
-    ): Promise<void> {
+    private async sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): Promise<void> {
         const time = moment()
-            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+            .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') // timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
             .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
 
         const parts = sku.split(';');
         const newSku = parts[0] + ';6';
         const item = SKU.fromString(newSku);
         const newName = this.schema.getName(item, false);
+
+        const keyPrices = this.getKeyPrices();
 
         let data;
         let oldPrice;
@@ -500,6 +497,13 @@ export default class Pricelist extends EventEmitter {
 
         const oldBuyingPrice = new Currencies(oldPrice.buy);
         const oldSellingPrice = new Currencies(oldPrice.sell);
+
+        const buyDiff = Currencies.toCurrencies(
+            oldBuyingPrice.toValue(keyPrices.buy.metal) - newPrice.buy.toValue(keyPrices.buy.metal)
+        );
+        const sellDiff = Currencies.toCurrencies(
+            oldSellingPrice.toValue(keyPrices.sell.metal) - newPrice.sell.toValue(keyPrices.sell.metal)
+        );
 
         const itemImageUrl = this.schema.getItemByItemName(newName);
 
@@ -666,7 +670,8 @@ export default class Pricelist extends EventEmitter {
                     },
                     title: '',
                     description:
-                        `**※Buying:** ${oldBuyingPrice.toString()} → ${buyPrice}\n**※Selling:** ${oldSellingPrice.toString()} → ${sellPrice}\n` +
+                        `**※  Buy:** ${oldBuyingPrice.toString()} → ${newPrice.buy.toString()} (${buyDiff.toString()})\n` +
+                        `**※ Sell:** ${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})\n` +
                         (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             : ''),
