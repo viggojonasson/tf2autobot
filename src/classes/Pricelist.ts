@@ -9,6 +9,7 @@ import SchemaManager from 'tf2-schema';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { parseJSON } from '../lib/helpers';
+import sleepasync from 'sleep-async';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice, getPriceHistory } from '../lib/ptf-api';
@@ -459,6 +460,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
                 await this.sendWebHookPriceUpdate(data.sku, name, match);
+                await sleepasync().Promise.sleep(1.5 * 1000);
             }
         }
     }
