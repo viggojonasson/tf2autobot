@@ -483,17 +483,19 @@ export default class Pricelist extends EventEmitter {
         const item = SKU.fromString(newSku);
         const newName = this.schema.getName(item, false);
 
+        let data;
         let oldPrice;
         try {
-            oldPrice = await getPriceHistory(sku, 'bptf');
+            data = await getPriceHistory(sku, 'bptf');
         } catch (err) {
-            oldPrice = null;
+            // Do nothing
         }
 
-        if (oldPrice !== null) {
-            oldPrice = oldPrice.history[oldPrice.length - 1];
-        } else {
+        if (!data) {
             oldPrice = { time: null, buy: { keys: 0, metal: 0 }, sell: { keys: 0, metal: 0 } };
+        } else {
+            const dataLength = data.history.length;
+            oldPrice = data.history[dataLength - 1];
         }
 
         const oldBuyingPrice = new Currencies(oldPrice.buy);
