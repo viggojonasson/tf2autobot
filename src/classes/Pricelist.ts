@@ -9,7 +9,6 @@ import SchemaManager from 'tf2-schema';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { parseJSON } from '../lib/helpers';
-import sleepasync from 'sleep-async';
 
 import log from '../lib/logger';
 import { getPricelist, getPrice, getPriceHistory } from '../lib/ptf-api';
@@ -480,7 +479,6 @@ export default class Pricelist extends EventEmitter {
         const newName = this.schema.getName(item, false);
 
         const keyPrices = this.getKeyPrices();
-        await sleepasync().Promise.sleep(2.0 * 1000);
 
         let data;
         let oldPrice;
