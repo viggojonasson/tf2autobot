@@ -11,7 +11,7 @@ import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { parseJSON } from '../lib/helpers';
 
 import log from '../lib/logger';
-import { getPricelist, getPrice } from '../lib/ptf-api';
+import { getPricelist, getPrice, getPriceHistory } from '../lib/ptf-api';
 import validator from '../lib/validator';
 
 const maxAge = parseInt(process.env.MAX_PRICE_AGE) || 8 * 60 * 60;
@@ -468,7 +468,12 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private sendWebHookPriceUpdate(itemName: string, buyPrice: string, sellPrice: string, sku: string): void {
+    private async sendWebHookPriceUpdate(
+        itemName: string,
+        buyPrice: string,
+        sellPrice: string,
+        sku: string
+    ): Promise<void> {
         const time = moment()
             .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') //timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
             .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
@@ -477,6 +482,22 @@ export default class Pricelist extends EventEmitter {
         const newSku = parts[0] + ';6';
         const item = SKU.fromString(newSku);
         const newName = this.schema.getName(item, false);
+
+        let oldPrice;
+        try {
+            oldPrice = await getPriceHistory(sku, 'bptf');
+        } catch (err) {
+            oldPrice = null;
+        }
+
+        if (oldPrice !== null) {
+            oldPrice = oldPrice.history[oldPrice.length - 1];
+        } else {
+            oldPrice = { time: null, buy: { keys: 0, metal: 0 }, sell: { keys: 0, metal: 0 } };
+        }
+
+        const oldBuyingPrice = new Currencies(oldPrice.buy);
+        const oldSellingPrice = new Currencies(oldPrice.sell);
 
         const itemImageUrl = this.schema.getItemByItemName(newName);
 
@@ -643,7 +664,7 @@ export default class Pricelist extends EventEmitter {
                     },
                     title: '',
                     description:
-                        `**※Buying for:** ${buyPrice}\n**※Selling for:** ${sellPrice}\n` +
+                        `**※Buying:**\n${oldBuyingPrice.toString()} → ${buyPrice}\n\n**※Selling:**\n${oldSellingPrice.toString()} → ${sellPrice}\n` +
                         (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                             : ''),
