@@ -433,7 +433,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private async handlePriceChange(data: any): Promise<void> {
+    private handlePriceChange(data: any): Promise<void> {
         if (data.source !== 'bptf') {
             return;
         }
@@ -459,7 +459,7 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
-                await this.sendWebHookPriceUpdate(data.sku, name, match);
+                this.sendWebHookPriceUpdate(data.sku, name, match);
             }
         }
     }
@@ -480,7 +480,7 @@ export default class Pricelist extends EventEmitter {
         const newName = this.schema.getName(item, false);
 
         const keyPrices = this.getKeyPrices();
-        await sleepasync().Promise.sleep(1.5 * 1000);
+        await sleepasync().Promise.sleep(2.0 * 1000);
 
         let data;
         let oldPrice;
