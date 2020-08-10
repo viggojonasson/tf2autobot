@@ -500,12 +500,12 @@ export default class Pricelist extends EventEmitter {
         const oldBuyingPrice = new Currencies(oldPrice.buy);
         const oldSellingPrice = new Currencies(oldPrice.sell);
 
-        const buyDiff = Currencies.toCurrencies(
-            oldBuyingPrice.toValue(keyPrices.buy.metal) - newPrice.buy.toValue(keyPrices.buy.metal)
-        );
-        const sellDiff = Currencies.toCurrencies(
-            oldSellingPrice.toValue(keyPrices.sell.metal) - newPrice.sell.toValue(keyPrices.sell.metal)
-        );
+        const buyDiffValue = oldBuyingPrice.toValue(keyPrices.buy.metal) - newPrice.buy.toValue(keyPrices.buy.metal);
+        const sellDiffValue =
+            oldSellingPrice.toValue(keyPrices.sell.metal) - newPrice.sell.toValue(keyPrices.sell.metal);
+
+        const buyDiff = buyDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(buyDiffValue);
+        const sellDiff = sellDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(sellDiffValue);
 
         const displayBuyPrice = !data
             ? 'Unknown → ' + newPrice.buy.toString()
