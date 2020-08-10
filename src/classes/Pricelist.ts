@@ -433,7 +433,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private handlePriceChange(data: any): Promise<void> {
+    private handlePriceChange(data: any): void {
         if (data.source !== 'bptf') {
             return;
         }
