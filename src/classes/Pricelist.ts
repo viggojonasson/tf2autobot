@@ -460,7 +460,6 @@ export default class Pricelist extends EventEmitter {
                 process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
             ) {
                 await this.sendWebHookPriceUpdate(data.sku, name, match);
-                await sleepasync().Promise.sleep(1.5 * 1000);
             }
         }
     }
@@ -481,6 +480,7 @@ export default class Pricelist extends EventEmitter {
         const newName = this.schema.getName(item, false);
 
         const keyPrices = this.getKeyPrices();
+        await sleepasync().Promise.sleep(1.5 * 1000);
 
         let data;
         let oldPrice;
