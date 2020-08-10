@@ -155,7 +155,7 @@ export = class Bot {
         this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
 
         this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);
-        this.addListenerWithDelay(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
+        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
     }
 
     getHandler(): Handler {
@@ -226,16 +226,6 @@ export = class Bot {
                     listener(...args);
                 }
             });
-        });
-    }
-
-    private addListenerWithDelay(emitter: any, event: string, listener: Function, checkCanEmit: boolean): void {
-        emitter.on(event, (...args: any[]) => {
-            setTimeout(() => {
-                if (!checkCanEmit || this.canSendEvents()) {
-                    listener(...args);
-                }
-            }, 1.5 * 1000);
         });
     }
 
