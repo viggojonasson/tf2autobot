@@ -6,6 +6,7 @@ import moment from 'moment-timezone';
 import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
+import sleepasync from 'sleep-async';
 
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { parseJSON } from '../lib/helpers';
@@ -469,6 +470,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     private async sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): Promise<void> {
+        await sleepasync().Promise.sleep(2 * 1000);
         const time = moment()
             .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC') // timezone format: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
             .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'); // refer: https://www.tutorialspoint.com/momentjs/momentjs_format.htm
