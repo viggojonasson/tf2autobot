@@ -495,7 +495,7 @@ export default class Pricelist extends EventEmitter {
             oldPrice = { time: null, buy: { keys: 0, metal: 0 }, sell: { keys: 0, metal: 0 } };
         } else {
             const dataLength = data.history.length;
-            oldPrice = data.history[dataLength - 1];
+            oldPrice = data.history[dataLength - 2];
         }
 
         const oldBuyingPrice = new Currencies(oldPrice.buy);
