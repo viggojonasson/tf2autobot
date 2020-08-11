@@ -478,6 +478,8 @@ export default class Pricelist extends EventEmitter {
         const item = SKU.fromString(newSku);
         const newName = this.schema.getName(item, false);
 
+        const isMentionKeys = sku === '5021;6' ? '<@&742723818568679505> - key price updated!' : '';
+
         // const keyPrices = this.getKeyPrices();
 
         // let data;
@@ -659,6 +661,7 @@ export default class Pricelist extends EventEmitter {
         const priceUpdate = JSON.stringify({
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+            content: isMentionKeys,
             embeds: [
                 {
                     author: {
