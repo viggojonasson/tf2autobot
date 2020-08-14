@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 import { parseJSON } from '../lib/helpers';
 
 import log from '../lib/logger';
@@ -117,9 +117,7 @@ export default class Pricelist extends EventEmitter {
         if (links !== null && Array.isArray(links)) {
             links.forEach(function(sku: string) {
                 if (sku === '' || !sku) {
-                    links = [
-                        'https://discordapp.com/api/webhooks/734547259911569470/ISKP9D0q2uXStAaLC8lvOWeY1VmiQh-Uo57twjFKmVB6ApSNZJyBtk0cZHkY6Df1GH-K' // Just dump it in my unused discord channel
-                    ];
+                    links = [''];
                 }
             });
             this.discordWebhookLinks = links;
@@ -454,10 +452,7 @@ export default class Pricelist extends EventEmitter {
 
             this.priceChanged(match.sku, match);
 
-            if (
-                process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' &&
-                process.env.DISCORD_WEBHOOK_PRICE_UPDATE_URL
-            ) {
+            if (process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' && this.discordWebhookLinks.length !== 0) {
                 this.sendWebHookPriceUpdate(data.sku, name, match);
             }
         }
@@ -658,7 +653,7 @@ export default class Pricelist extends EventEmitter {
         const qualityColorPrint = qualityColor.color[qualityItem].toString();
 
         /*eslint-disable */
-        const priceUpdate = JSON.stringify({
+        const priceUpdate = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: isMentionKeys,
@@ -689,14 +684,13 @@ export default class Pricelist extends EventEmitter {
                     color: qualityColorPrint
                 }
             ]
-        });
+        };
         /*eslint-enable */
 
         this.discordWebhookLinks.forEach(link => {
-            const request = new XMLHttpRequest();
-            request.open('POST', link);
-            request.setRequestHeader('Content-type', 'application/json');
-            request.send(priceUpdate);
+            const discordClient = new DiscordWebhook(link);
+            const requestBody: Webhook.input.POST = priceUpdate;
+            discordClient.execute(requestBody);
         });
     }
 
