@@ -737,10 +737,6 @@ export default class Pricelist extends EventEmitter {
             color: string;
         }[] = [];
 
-        let itemImageUrlPrint: string;
-        let effectsId: string;
-        let effectURL: string;
-
         const paintCan = {
             canColor: {
                 '5052;6': '2f4f4f', // A Color Similar to Slate
@@ -863,6 +859,8 @@ export default class Pricelist extends EventEmitter {
 
             const itemImageUrl = this.schema.getItemByItemName(newName);
 
+            let itemImageUrlPrint: string;
+
             if (!itemImageUrl) {
                 itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
             } else if (Object.keys(paintCan.canColor).includes(newSku)) {
@@ -874,9 +872,13 @@ export default class Pricelist extends EventEmitter {
                 itemImageUrlPrint = itemImageUrl.image_url_large;
             }
 
+            let effectsId: string;
+
             if (parts[2]) {
                 effectsId = parts[2].replace('u', '');
             }
+
+            let effectURL: string;
 
             if (!effectsId) {
                 effectURL = '';
