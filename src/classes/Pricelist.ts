@@ -854,8 +854,8 @@ export default class Pricelist extends EventEmitter {
         data.forEach(data => {
             const parts = data.sku.split(';');
             const newSku = parts[0] + ';6';
-            const item = SKU.fromString(newSku);
-            const newName = this.schema.getName(item, false);
+            const newItem = SKU.fromString(newSku);
+            const newName = this.schema.getName(newItem, false);
 
             const itemImageUrl = this.schema.getItemByItemName(newName);
 
@@ -868,6 +868,11 @@ export default class Pricelist extends EventEmitter {
             } else if (data.sku.includes(';11;australium')) {
                 const australiumSKU = parts[0] + ';11;australium';
                 itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
+            } else if (data.sku.includes(';w') && data.sku.includes(';p')) {
+                const item = SKU.fromString(data.sku);
+                itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(newName)}_${
+                    item.paintkit
+                }_${item.wear}_${item.festive === true ? 1 : 0}.png`;
             } else {
                 itemImageUrlPrint = itemImageUrl.image_url_large;
             }
