@@ -737,7 +737,6 @@ export default class Pricelist extends EventEmitter {
             color: string;
         }[] = [];
 
-        let isMentionKeys: string;
         let itemImageUrlPrint: string;
         let effectsId: string;
         let effectURL: string;
@@ -862,8 +861,6 @@ export default class Pricelist extends EventEmitter {
             const item = SKU.fromString(newSku);
             const newName = this.schema.getName(item, false);
 
-            isMentionKeys = data.sku === '5021;6' ? '<@&742723818568679505> - key price updated!' : '';
-
             const itemImageUrl = this.schema.getItemByItemName(newName);
 
             if (!itemImageUrl) {
@@ -918,6 +915,11 @@ export default class Pricelist extends EventEmitter {
             });
             /*eslint-enable */
         });
+
+        const isContainKey = data.some(el => {
+            return el.sku.includes('5021;6');
+        });
+        const isMentionKeys = isContainKey ? '<@&742723818568679505> - key price updated!' : '';
 
         /*eslint-disable */
         const priceUpdate = {
