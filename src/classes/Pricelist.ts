@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
 import { parseJSON } from '../lib/helpers';
 
 import log from '../lib/logger';
@@ -922,19 +922,18 @@ export default class Pricelist extends EventEmitter {
         });
 
         /*eslint-disable */
-        const priceUpdate = JSON.stringify({
+        const priceUpdate = {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: isMentionKeys,
             embeds: embed
-        });
+        };
         /*eslint-enable */
 
         this.discordWebhookLinks.forEach(link => {
-            const request = new XMLHttpRequest();
-            request.open('POST', link);
-            request.setRequestHeader('Content-type', 'application/json');
-            request.send(priceUpdate);
+            const discordClient = new DiscordWebhook(link);
+            const requestBody: Webhook.input.POST = priceUpdate;
+            discordClient.execute(requestBody);
         });
     }
 
