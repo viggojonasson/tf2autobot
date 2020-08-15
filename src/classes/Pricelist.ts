@@ -455,8 +455,6 @@ export default class Pricelist extends EventEmitter {
             match.sell = new Currencies(data.sell);
             match.time = data.time;
 
-            const name = this.schema.getName(SKU.fromString(match.sku), false);
-
             this.priceChanged(match.sku, match);
 
             if (process.env.DISABLE_DISCORD_WEBHOOK_PRICE_UPDATE === 'false' && this.discordWebhookLinks.length !== 0) {
@@ -468,7 +466,7 @@ export default class Pricelist extends EventEmitter {
 
                 this.priceChanges.push({
                     sku: data.sku,
-                    name: name,
+                    name: this.schema.getName(SKU.fromString(match.sku), false),
                     newPrice: match,
                     time: time
                 });
