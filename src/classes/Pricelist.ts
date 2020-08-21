@@ -7,7 +7,7 @@ import Currencies from 'tf2-currencies';
 import SKU from 'tf2-sku';
 import SchemaManager from 'tf2-schema';
 
-import DiscordWebhook, { Webhook } from 'discord-webhook-ts';
+import { XMLHttpRequest } from 'xmlhttprequest-ts';
 import { parseJSON } from '../lib/helpers';
 
 import log from '../lib/logger';
@@ -996,9 +996,10 @@ export default class Pricelist extends EventEmitter {
         /*eslint-enable */
 
         this.discordWebhookLinks.forEach(link => {
-            const discordClient = new DiscordWebhook(link);
-            const requestBody: Webhook.input.POST = priceUpdate;
-            discordClient.execute(requestBody);
+            const request = new XMLHttpRequest();
+            request.open('POST', link);
+            request.setRequestHeader('Content-type', 'application/json');
+            request.send(JSON.stringify(priceUpdate));
         });
     }
 
