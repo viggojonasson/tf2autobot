@@ -987,19 +987,19 @@ export default class Pricelist extends EventEmitter {
         const isMentionKeys = isContainKey ? '<@&742723818568679505> - key price updated!' : '';
 
         /*eslint-disable */
-        const priceUpdate = {
+        const priceUpdate = JSON.stringify({
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: isMentionKeys,
             embeds: embed
-        };
+        });
         /*eslint-enable */
 
         this.discordWebhookLinks.forEach(link => {
             const request = new XMLHttpRequest();
             request.open('POST', link);
             request.setRequestHeader('Content-type', 'application/json');
-            request.send(JSON.stringify(priceUpdate));
+            request.send(priceUpdate);
         });
     }
 
