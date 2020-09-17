@@ -464,12 +464,16 @@ export default class Pricelist extends EventEmitter {
                         process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
-                this.priceChanges.push({
-                    sku: data.sku,
-                    name: this.schema.getName(SKU.fromString(match.sku), false),
-                    newPrice: match,
-                    time: time
-                });
+                if (data.sku === '5021;6') {
+                    this.sendWebhookKeyUpdate(data.sku, name, match, time);
+                } else {
+                    this.priceChanges.push({
+                        sku: data.sku,
+                        name: this.schema.getName(SKU.fromString(match.sku), false),
+                        newPrice: match,
+                        time: time
+                    });
+                }
 
                 if (this.priceChanges.length > 4) {
                     this.sendWebHookPriceUpdate(this.priceChanges);
@@ -484,237 +488,86 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    // private sendWebHookPriceUpdate(sku: string, itemName: string, newPrice: Entry): void {
-    //     const time = moment()
-    //         .tz(process.env.TIMEZONE ? process.env.TIMEZONE : 'UTC')
-    //         .format(process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ');
+    //     let data;
+    //     let oldPrice;
+    //     try {
+    //         data = await getPriceHistory(sku, 'bptf');
+    //     } catch (err) {
+    //         log.warn('failed to get old price: ' + (err.body && err.body.message ? err.body.message : err.message));
+    //     }
 
-    //     const parts = sku.split(';');
-    //     const newSku = parts[0] + ';6';
-    //     const item = SKU.fromString(newSku);
-    //     const newName = this.schema.getName(item, false);
-
-    //     const isMentionKeys = sku === '5021;6' ? '<@&742723818568679505> - key price updated!' : '';
-
-    //     // const keyPrices = this.getKeyPrices();
-
-    //     // let data;
-    //     // let oldPrice;
-    //     // try {
-    //     //     data = await getPriceHistory(sku, 'bptf');
-    //     // } catch (err) {
-    //     //     log.warn('failed to get old price: ' + (err.body && err.body.message ? err.body.message : err.message));
-    //     // }
-
-    //     // if (!data) {
-    //     //     oldPrice = { time: null, buy: { keys: 0, metal: 0 }, sell: { keys: 0, metal: 0 } };
-    //     // } else {
-    //     //     const dataLength = data.history.length;
-    //     //     oldPrice = data.history[dataLength - 2];
-    //     // }
-
-    //     // const oldBuyingPrice = new Currencies(oldPrice.buy);
-    //     // const oldSellingPrice = new Currencies(oldPrice.sell);
-
-    //     // const buyDiffValue = newPrice.buy.toValue(keyPrices.buy.metal) - oldBuyingPrice.toValue(keyPrices.buy.metal);
-    //     // const sellDiffValue =
-    //     //     newPrice.sell.toValue(keyPrices.sell.metal) - oldSellingPrice.toValue(keyPrices.sell.metal);
-
-    //     // const buyDiff = buyDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(buyDiffValue);
-    //     // const sellDiff = sellDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(sellDiffValue);
-
-    //     // const displayBuyPrice = !data
-    //     //     ? 'Unknown → ' + newPrice.buy.toString()
-    //     //     : `${oldBuyingPrice.toString()} → ${newPrice.buy.toString()} (${buyDiff.toString()})`;
-
-    //     // const displaySellPrice = !data
-    //     //     ? 'Unknown → ' + newPrice.sell.toString()
-    //     //     : `${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})`;
-
-    //     const itemImageUrl = this.schema.getItemByItemName(newName);
-
-    //     const paintCan = {
-    //         canColor: {
-    //             '5052;6': '2f4f4f', // A Color Similar to Slate
-    //             '5031;6': '7d4071', // A Deep Commitment to Purple
-    //             '5040;6': '141414', // A Distinctive Lack of Hue
-    //             '5076;6': 'bcddb3', // A Mann's Mint
-    //             '5077;6': '2d2d24', // After Eight
-    //             '5038;6': '7e7e7e', // Aged Moustache Grey
-    //             '5063;6': '654740', // An Air of Debonair
-    //             '5039;6': 'e6e6e6', // An Extraordinary Abundance of Tinge
-    //             '5037;6': 'e7b53b', // Australium Gold
-    //             '5062;6': '3b1f23', // Balaclavas Are Forever
-    //             '5030;6': 'd8bed8', // Color No. 216-190-216
-    //             '5065;6': 'c36c2d', // Cream Spirit
-    //             '5056;6': 'e9967a', // Dark Salmon Injustice
-    //             '5053;6': '808000', // Drably Olive
-    //             '5027;6': '729e42', // Indubitably Green
-    //             '5032;6': 'cf7336', // Mann Co. Orange
-    //             '5033;6': 'a57545', // Muskelmannbraun
-    //             '5029;6': '51384a', // Noble Hatter's Violet
-    //             '5060;6': '483838', // Operator's Overalls
-    //             '5034;6': 'c5af91', // Peculiarly Drab Tincture
-    //             '5051;6': 'ff69b4', // Pink as Hell
-    //             '5035;6': '694d3a', // Radigan Conagher Brown
-    //             '5046;6': 'b8383b', // Team Spirit
-    //             '5054;6': '32cd32', // The Bitter Taste of Defeat and Lime
-    //             '5055;6': 'f0e68c', // The Color of a Gentlemann's Business Pants
-    //             '5064;6': '803020', // The Value of Teamwork
-    //             '5061;6': 'a89a8c', // Waterlogged Lab Coat
-    //             '5036;6': '7c6c57', // Ye Olde Rustic Colour
-    //             '5028;6': '424f3b' // Zepheniah's Greed
-    //         }
-    //     };
-
-    //     const australiumImageURL = {
-    //         // Australium Ambassador
-    //         '61;11;australium':
-    //             'IUwYcXxrxqzlHh9rZCv2ADN8Mmsgy4N4MgGBvxVQuY7G2ZW8zJlfDUKJYCqxp8lnuW34wvJM3DIHgr-8CcAu9qsKYZG08QCvM/',
-    //         // Australium Medi Gun
-    //         '211;11;australium':
-    //             'cUwoUWRLlrTZ8j8fqCc2ACfIHnpQ35pFWgGVtkFEqMuawNTQ-IwaaVfgICfRs9Vm9UXdmvpcwV4TipO4CZ0yx42dGigAL/',
-    //         // Australium SMG
-    //         '203;11;australium':
-    //             'IUxQcWiTltzRHt8TnH_WJRrhXmYpmvchRimI4xlMtbOfmNGdhdlTGV_VdDqBjrV-9CH43uZMzV4f457UBxvSrc7I/',
-    //         // Australium Stickybomb Launcher
-    //         '207;11;australium':
-    //             'cUxQFVBjpoTpMhcrZAfOZBuMInsgK4p9Z3QlnkBN8Ma2xNGBldwbGBfQHCqNj9Vy-UXJm6sVmVYS0oLlWeFm9soqSYbd_N4tEAYCODYMwr6jb/',
-    //         // Australium Black Box
-    //         '228;11;australium':
-    //             'IUwUdXBjpujdbt8_pAfazBOESnN97tJUAiGc6wFl4ZbvjaDU0JFbGUvUJCPc-8QvqDXc36pI6V4_go-oCexKv6tWDpsnI5Q/',
-    //         // Australium Blutsauger
-    //         '36;11;australium':
-    //             'IUwsUWBjqvy1Nt8_pAfazBOESnN97vZQFgGVtyQUrbeW2ZjM_IFHGA_JYC_BuoQ7qDyJlusVnUdO1orpQfRKv6tW-OVvZVQ/',
-    //         // Australium Flame Thrower
-    //         '208;11;australium':
-    //             'IUwEdXBbnrDBRh9_jH82LB-wEpNY095dQl2AzwlAsY7GzY242JlbHUKRdD6JtrV_pCndhvcJgDI7jpe8Afgrq54LYc-5723D3DXU/',
-    //         // Australium Force-A-Nature
-    //         '45;11;australium':
-    //             'IUwMeSBnuvQdBidr0CP6zD-8Mn-U55IJS3Hg4xFB_NbSzYjJkcwCRUaFaCaJopVzuWHBi65dnAILu8u9Te1--t9DCLfByZ9DzsRlF/',
-    //         // Australium Frontier Justice
-    //         '141;11;australium':
-    //             'IUwEDUhX2sT1Rgt31GfuPDd8HlNYx2pxUyzFu31V6YrLiZWJiIVeUV6IKDvdi9wy-UXA3upY3VtG19eMDeAzusYLOMrcycIYb30r634E/',
-    //         // Australium Grenade Launcher
-    //         '206;11;australium':
-    //             'cUwADWBXjvD1Pid3oDvqJGt8HlNYx2pxUyzFu31YtYObgYGFjJ12VBKYLDac78FC5WyYxvMU1DYC0pLpTcAq8sIOVNrEycIYbGbNsLhA/',
-    //         // Australium Minigun
-    //         '202;11;australium':
-    //             'cUwoYUxLlrTZ8j8fqCc2ACfIHnpRl48RRjjczw1N_YuLmYjVhJwaSUvILCa1r8Fm5X3cwupFnAoXvob8DZ0yx4_oW5y4u/',
-    //         // Australium Tomislav
-    //         '424;11;australium':
-    //             'IUxMeUBLxtDlVt8_pAfazBOESnN974chX2mQ9wQMrY-G3YGdhcwWXB_UPWKZt9wruUX9ivpFlAIWwou1VehKv6tXcWH-bzQ/',
-    //         // Australium Rocket Launcher
-    //         '205;11;australium':
-    //             'cUxUeXhDnrDRCncblBfeeN-cPl94K6ZFH3jMlwgcsNeaxZDYwcQWbA_BbDvZprArqXSJluJ5hUYPur-xRKlnq4daUO65sbo8Wbc6SlA/',
-    //         // Australium Scattergun
-    //         '200;11;australium':
-    //             'cUxQSXA_2vSpEncbZCv2ADN8Mmsgy4N4E2Gc-lQcsMuDlY2A2IQbHB6UGWK0-9V29WnY365E3BYTkpb1UewzqqsKYZAHhHABV/',
-    //         // Australium Sniper Rifle
-    //         '201;11;australium':
-    //             'cUxQfVAvnqipKjsTjMvWDBOQ_l9sn4pUbiGI6wFUoYLftMjMzcFeQBPFYD6dsoF-_Wn9nvJ82B4fkpOgAelrq5ZyGbefBeMmAbQ/',
-    //         // Australium Sniper Rifle 2 - weird
-    //         '15072;11;australium':
-    //             'cUxQfVAvnqipKjsTjMvWDBOQ_l9sn4pUbiGI6wFUoYLftMjMzcFeQBPFYD6dsoF-_Wn9nvJ82B4fkpOgAelrq5ZyGbefBeMmAbQ/',
-    //         // Australium Axtinguisher
-    //         '38;11;australium':
-    //             'IUwYJSRLsvy1Km8DjH82cEfIPpN066ZRq1Td5lgQ1MrDhZmAyKgfHU_cLX6NtrAy8W3Bnup4zVdPur-heew3otoTCZ7R_ZcYMQZeUvB7w1w/',
-    //         // Australium Eyelander
-    //         '132;11;australium':
-    //             'IUwQdXALvtypGt8_pAfazBOESnN974ZFWjW8ylVJ_Y-C3aWEyKwGbUvUHWaRpo1--CHE2vsRmUITh9bhWehKv6tX00uGxPA/',
-    //         // Australium Knife
-    //         '194;11;australium':
-    //             'cUwwfVB3nhz9MhMzZAfOeD-VOyIJs55YAjDA8wAd6NrHnMm4xcFKSU_ZcCPQ49QzoXXQ0vcUxAYDu8vUWJ1teRmVbCw/',
-    //         // Australium Wrench
-    //         '197;11;australium':
-    //             'cUxADWBXhsAdEh8TiMv6NGucF1Ypg4ZNWgG9qyAB5YOfjaTRmJweaB_cPCaNjpAq9CnVgvZI1UNTn8bhIOVK4UnPgIXo/'
-    //     };
-
-    //     let itemImageUrlPrint: string;
-    //     if (!itemImageUrl) {
-    //         itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-    //     } else if (Object.keys(paintCan.canColor).includes(newSku)) {
-    //         itemImageUrlPrint = `https://backpack.tf/images/440/cans/Paint_Can_${paintCan.canColor[newSku]}.png`;
-    //     } else if (sku.includes(';11;australium')) {
-    //         const australiumSKU = parts[0] + ';11;australium';
-    //         itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
+    //     if (!data) {
+    //         oldPrice = { time: null, buy: { keys: 0, metal: 0 }, sell: { keys: 0, metal: 0 } };
     //     } else {
-    //         itemImageUrlPrint = itemImageUrl.image_url_large;
+    //         const dataLength = data.history.length;
+    //         oldPrice = data.history[dataLength - 2];
     //     }
 
-    //     let effectsId: string;
-    //     if (parts[2]) {
-    //         effectsId = parts[2].replace('u', '');
-    //     }
+    //     const oldBuyingPrice = new Currencies(oldPrice.buy);
+    //     const oldSellingPrice = new Currencies(oldPrice.sell);
 
-    //     let effectURL: string;
-    //     if (!effectsId) {
-    //         effectURL = '';
-    //     } else {
-    //         effectURL = `https://backpack.tf/images/440/particles/${effectsId}_94x94.png`;
-    //     }
+    //     const buyDiffValue = newPrice.buy.toValue(keyPrices.buy.metal) - oldBuyingPrice.toValue(keyPrices.buy.metal);
+    //     const sellDiffValue =
+    //         newPrice.sell.toValue(keyPrices.sell.metal) - oldSellingPrice.toValue(keyPrices.sell.metal);
 
-    //     const qualityItem = parts[1];
-    //     const qualityColor = {
-    //         color: {
-    //             '0': '11711154', // Normal - #B2B2B2
-    //             '1': '5076053', // Genuine - #4D7455
-    //             '3': '4678289', // Vintage - #476291
-    //             '5': '8802476', // Unusual - #8650AC
-    //             '6': '16766720', // Unique - #FFD700
-    //             '7': '7385162', // Community - #70B04A
-    //             '8': '10817401', // Valve - #A50F79
-    //             '9': '7385162', //Self-Made - #70B04A
-    //             '11': '13593138', //Strange - #CF6A32
-    //             '13': '3732395', //Haunted - #38F3AB
-    //             '14': '11141120', //Collector's - #AA0000
-    //             '15': '16711422' // Decorated Weapon
-    //         }
-    //     };
-    //     const qualityColorPrint = qualityColor.color[qualityItem].toString();
+    //     const buyDiff = buyDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(buyDiffValue);
+    //     const sellDiff = sellDiffValue === 0 ? 'unchanged' : Currencies.toCurrencies(sellDiffValue);
 
-    //     /*eslint-disable */
-    //     const priceUpdate = JSON.stringify({
-    //         username: process.env.DISCORD_WEBHOOK_USERNAME,
-    //         avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-    //         content: isMentionKeys,
-    //         embeds: [
-    //             {
-    //                 author: {
-    //                     name: itemName,
-    //                     url: `https://www.prices.tf/items/${sku}`,
-    //                     icon_url:
-    //                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-    //                 },
-    //                 footer: {
-    //                     text: `Item's SKU: ${sku} • ${time}`
-    //                 },
-    //                 thumbnail: {
-    //                     url: itemImageUrlPrint
-    //                 },
-    //                 image: {
-    //                     url: effectURL
-    //                 },
-    //                 title: '',
-    //                 description:
-    //                     `**※  Buy:** ${newPrice.buy.toString()}\n` +
-    //                     `**※ Sell:** ${newPrice.sell.toString()}\n` +
-    //                     (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-    //                         ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-    //                         : ''),
-    //                 color: qualityColorPrint
-    //             }
-    //         ]
-    //     });
-    //     /*eslint-enable */
+    //     const displayBuyPrice = !data
+    //         ? 'Unknown → ' + newPrice.buy.toString()
+    //         : `${oldBuyingPrice.toString()} → ${newPrice.buy.toString()} (${buyDiff.toString()})`;
 
-    //     this.discordWebhookLinks.forEach(link => {
-    //         const request = new XMLHttpRequest();
-    //         request.open('POST', link);
-    //         request.setRequestHeader('Content-type', 'application/json');
-    //         request.send(priceUpdate);
-    //     });
-    // }
+    //     const displaySellPrice = !data
+    //         ? 'Unknown → ' + newPrice.sell.toString()
+    //         : `${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})`;
+
+    private sendWebhookKeyUpdate(sku: string, name: string, newPrice: Entry, time: string): void {
+        const itemImageUrl = this.schema.getItemByItemName(name);
+
+        /*eslint-disable */
+        const priceUpdate = JSON.stringify({
+            username: process.env.DISCORD_WEBHOOK_USERNAME,
+            avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
+            content: '<@&742723818568679505>',
+            embeds: {
+                author: {
+                    name: name,
+                    url: `https://www.prices.tf/items/${sku}`,
+                    icon_url:
+                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                },
+                footer: {
+                    text: `${sku} • ${time}`
+                },
+                thumbnail: {
+                    url: itemImageUrl
+                },
+                title: '',
+                description:
+                    `**※  Buy:** ${newPrice.buy.toString()}\n` +
+                    `**※ Sell:** ${newPrice.sell.toString()}\n` +
+                    (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+                        : ''),
+                color: '16766720'
+            }
+        });
+        /*eslint-enable */
+
+        // send key price update to main price update webhook and other's webhooks
+        this.discordWebhookLinks.forEach(link => {
+            const request = new XMLHttpRequest();
+            request.open('POST', link);
+            request.setRequestHeader('Content-type', 'application/json');
+            request.send(priceUpdate);
+        });
+
+        // send key price update to only key price update webhook.
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_KEYPRICE_UPDATE_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(priceUpdate);
+    }
 
     private sendWebHookPriceUpdate(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
         const embed: {
@@ -961,7 +814,7 @@ export default class Pricelist extends EventEmitter {
                         'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
                 },
                 footer: {
-                    text: `Item's SKU: ${data.sku} • ${data.time}`
+                    text: `${data.sku} • ${data.time}`
                 },
                 thumbnail: {
                     url: itemImageUrlPrint
@@ -981,16 +834,11 @@ export default class Pricelist extends EventEmitter {
             /*eslint-enable */
         });
 
-        const isContainKey = data.some(el => {
-            return el.sku.includes('5021;6');
-        });
-        const isMentionKeys = isContainKey ? '<@&742723818568679505> - key price updated!' : '';
-
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
-            content: isMentionKeys,
+            content: '',
             embeds: embed
         });
         /*eslint-enable */
