@@ -464,11 +464,16 @@ export default class Pricelist extends EventEmitter {
                         process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
-                if (data.sku === '5021;6') {
-                    this.sendWebhookKeyUpdate(data.sku, name, match, time);
+                if (match.sku === '5021;6') {
+                    this.sendWebhookKeyUpdate(
+                        match.sku,
+                        this.schema.getName(SKU.fromString(match.sku), false),
+                        match,
+                        time
+                    );
                 } else {
                     this.priceChanges.push({
-                        sku: data.sku,
+                        sku: match.sku,
                         name: this.schema.getName(SKU.fromString(match.sku), false),
                         newPrice: match,
                         time: time
