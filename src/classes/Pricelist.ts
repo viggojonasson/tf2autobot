@@ -522,7 +522,7 @@ export default class Pricelist extends EventEmitter {
     //         : `${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})`;
 
     private sendWebhookKeyUpdate(sku: string, name: string, newPrice: Entry, time: string): void {
-        const itemImageUrl = this.schema.getItemByItemName(name);
+        const itemImageUrl = this.schema.getItemByDefindex(5021);
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
@@ -563,10 +563,10 @@ export default class Pricelist extends EventEmitter {
         });
 
         // send key price update to only key price update webhook.
-        const request = new XMLHttpRequest();
-        request.open('POST', process.env.DISCORD_WEBHOOK_KEYPRICE_UPDATE_URL);
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send(priceUpdate);
+        const request2 = new XMLHttpRequest();
+        request2.open('POST', process.env.DISCORD_WEBHOOK_KEYPRICE_UPDATE_URL);
+        request2.setRequestHeader('Content-type', 'application/json');
+        request2.send(priceUpdate);
     }
 
     private sendWebHookPriceUpdate(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
