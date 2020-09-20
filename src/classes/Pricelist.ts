@@ -464,21 +464,18 @@ export default class Pricelist extends EventEmitter {
                         process.env.CUSTOM_TIME_FORMAT ? process.env.CUSTOM_TIME_FORMAT : 'MMMM Do YYYY, HH:mm:ss ZZ'
                     );
 
+                const name = this.schema.getName(SKU.fromString(match.sku), false);
+
                 if (match.sku === '5021;6') {
-                    this.sendWebhookKeyUpdate(
-                        match.sku,
-                        this.schema.getName(SKU.fromString(match.sku), false),
-                        match,
-                        time
-                    );
-                } else {
-                    this.priceChanges.push({
-                        sku: match.sku,
-                        name: this.schema.getName(SKU.fromString(match.sku), false),
-                        newPrice: match,
-                        time: time
-                    });
+                    this.sendWebhookKeyUpdate(match.sku, name, match, time);
                 }
+
+                this.priceChanges.push({
+                    sku: match.sku,
+                    name: name,
+                    newPrice: match,
+                    time: time
+                });
 
                 if (this.priceChanges.length > 4) {
                     this.sendWebHookPriceUpdate(this.priceChanges);
@@ -527,7 +524,7 @@ export default class Pricelist extends EventEmitter {
     //         : `${oldSellingPrice.toString()} → ${newPrice.sell.toString()} (${sellDiff.toString()})`;
 
     private sendWebhookKeyUpdate(sku: string, name: string, newPrice: Entry, time: string): void {
-        const itemImageUrl = this.schema.getItemByDefindex(5021);
+        const itemImageUrl = this.schema.getItemByItemName(name);
 
         /*eslint-disable */
         const priceUpdate = JSON.stringify({
@@ -545,7 +542,7 @@ export default class Pricelist extends EventEmitter {
                     text: `${sku} • ${time}`
                 },
                 thumbnail: {
-                    url: itemImageUrl
+                    url: itemImageUrl.image_url_large
                 },
                 title: '',
                 description:
@@ -559,19 +556,11 @@ export default class Pricelist extends EventEmitter {
         });
         /*eslint-enable */
 
-        // send key price update to main price update webhook and other's webhooks
-        this.discordWebhookLinks.forEach(link => {
-            const request = new XMLHttpRequest();
-            request.open('POST', link);
-            request.setRequestHeader('Content-type', 'application/json');
-            request.send(priceUpdate);
-        });
-
         // send key price update to only key price update webhook.
-        const request2 = new XMLHttpRequest();
-        request2.open('POST', process.env.DISCORD_WEBHOOK_KEYPRICE_UPDATE_URL);
-        request2.setRequestHeader('Content-type', 'application/json');
-        request2.send(priceUpdate);
+        const request = new XMLHttpRequest();
+        request.open('POST', process.env.DISCORD_WEBHOOK_KEYPRICE_UPDATE_URL);
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send(priceUpdate);
     }
 
     private sendWebHookPriceUpdate(data: { sku: string; name: string; newPrice: Entry; time: string }[]): void {
