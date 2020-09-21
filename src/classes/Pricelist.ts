@@ -531,7 +531,7 @@ export default class Pricelist extends EventEmitter {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: '<@&742723818568679505>',
-            embeds: {
+            embeds: [{
                 author: {
                     name: name,
                     url: `https://www.prices.tf/items/${sku}`,
@@ -552,7 +552,7 @@ export default class Pricelist extends EventEmitter {
                         ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                         : ''),
                 color: '16766720'
-            }
+            }]
         });
         /*eslint-enable */
 
