@@ -477,7 +477,7 @@ export default class Pricelist extends EventEmitter {
                     time: time
                 });
 
-                if (this.priceChanges.length > 4) {
+                if (this.priceChanges.length > 2) {
                     this.sendWebHookPriceUpdate(this.priceChanges);
                     this.priceChanges.length = 0;
                 }
@@ -531,28 +531,39 @@ export default class Pricelist extends EventEmitter {
             username: process.env.DISCORD_WEBHOOK_USERNAME,
             avatar_url: process.env.DISCORD_WEBHOOK_AVATAR_URL,
             content: '<@&742723818568679505>',
-            embeds: [{
-                author: {
-                    name: name,
-                    url: `https://www.prices.tf/items/${sku}`,
-                    icon_url:
-                        'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
-                },
-                footer: {
-                    text: `${sku} • ${time}`
-                },
-                thumbnail: {
-                    url: itemImageUrl.image_url_large
-                },
-                title: '',
-                description:
-                    `**※  Buy:** ${newPrice.buy.toString()}\n` +
-                    `**※ Sell:** ${newPrice.sell.toString()}\n` +
-                    (process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
+            embeds: [
+                {
+                    author: {
+                        name: name,
+                        url: `https://www.prices.tf/items/${sku}`,
+                        icon_url:
+                            'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
+                    },
+                    footer: {
+                        text: `${sku} • ${time}`
+                    },
+                    thumbnail: {
+                        url: itemImageUrl.image_url_large
+                    },
+                    title: '',
+                    fields: [
+                        {
+                            name: 'Buying for',
+                            value: newPrice.buy.toString(),
+                            inline: true
+                        },
+                        {
+                            name: 'Selling for',
+                            value: newPrice.sell.toString(),
+                            inline: true
+                        }
+                    ],
+                    description: process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
                         ? process.env.DISCORD_WEBHOOK_PRICE_UPDATE_ADDITIONAL_DESCRIPTION_NOTE
-                        : ''),
-                color: '16766720'
-            }]
+                        : '',
+                    color: '16766720'
+                }
+            ]
         });
         /*eslint-enable */
 
