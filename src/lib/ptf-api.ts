@@ -28,7 +28,7 @@ function apiRequest(httpMethod: string, path: string, input: UnknownDictionary<a
         method: httpMethod,
         url: `https://api.prices.tf${path}`,
         headers: {
-            'User-Agent': 'tf2-automatic@' + process.env.BOT_VERSION
+            'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
         },
         json: true,
         gzip: true,

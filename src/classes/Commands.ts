@@ -1818,14 +1818,14 @@ export = class Commands {
     private versionCommand(steamID: SteamID): void {
         this.bot.sendMessage(
             steamID,
-            `Currently running tf2autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
+            `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
         );
 
         this.bot
             .checkForUpdates()
             .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
-                    this.bot.sendMessage(steamID, 'You are running the latest version of tf2autobot!');
+                    this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
